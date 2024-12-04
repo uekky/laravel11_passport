@@ -60,6 +60,7 @@ php artisan passport:client
 
 - ユーザー認証（登録・ログイン）
 - アクセストークンによるAPI認証
+- 認証方式が複数あるだけで、インターフェースとレスポンスは、同じ
 - ユーザープロフィール管理
 - （その他実装した機能）
 
@@ -93,7 +94,45 @@ $response = $http->post('http://127.0.0.1:8000/oauth/token', [
     ],
 ]);
 
+```
 
+## Client Credentials Grantによるトークン取得
+
+Client Credentials GrantではユーザIDとパスワードも必要がありません。そのためユーザに依存しないため、APIを経由して毎日の売上情報を取得するといったスケジュール化された処理を行うために使用することができます。
+
+### ミドルウェアの設定
+
+`bootstrap/app.php`の`$middleware->api('client', [
+    \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+]);`を追加します。
+
+### トークンの取得
+
+```bash
+# Client Credentials Grant Clientの作成
+$ passport:client --client
+
+
+# アクセストークンの取得
+$response = $http->post('http://127.0.0.1:8000/oauth/token', [
+    'form_params' => [
+        'grant_type' => 'client_credentials',
+        'client_id' => '4',
+        'client_secret' => '5VTuDW0CESesZobxJoPDlQQ0tb1DVkbC2t3EKXFL',
+        'scope' => '',
+    ],
+]);
+```
+
+## トークンを使った値の取得
+
+```bash
+$response = $client->request('GET', 'http://127.0.0.1:8000/api/user', [
+    'headers' => [
+        'Accept' => 'application/json',
+        'Authorization' => 'Bearer '.$accessToken,
+    ],
+]);
 ```
 
 ## 開発のポイント
